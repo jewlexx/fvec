@@ -4,6 +4,7 @@ use std::{
     fs::{File, OpenOptions},
     marker::PhantomData,
     ops::{Deref, DerefMut},
+    path::Path,
     slice,
 };
 
@@ -19,6 +20,11 @@ pub struct FVec<T: Sized> {
 
 impl<T: Sized> FVec<T> {
     pub unsafe fn new() -> Self {
+        // TODO: Maybe get a better file name
+        Self::from_path("./filevec.bin")
+    }
+
+    pub unsafe fn from_path(path: impl AsRef<Path>) -> Self {
         const START_CAPACITY: usize = 8;
         let data_size = std::mem::size_of::<T>();
 
@@ -26,7 +32,7 @@ impl<T: Sized> FVec<T> {
             .read(true)
             .write(true)
             .create(true)
-            .open("./filevec.bin")
+            .open(path)
             .unwrap();
 
         file.set_len((START_CAPACITY * data_size) as u64).unwrap();
