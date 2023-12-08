@@ -52,8 +52,7 @@ impl<T: Sized> FVec<T> {
             self.increase_file(self.capacity * 2);
         }
 
-        let slice = slice::from_raw_parts_mut(self.map.as_ptr().cast::<T>().cast_mut(), self.len);
-        slice[self.len - 1] = data;
+        self.as_slice_mut()[self.len - 1] = data;
     }
 
     pub unsafe fn as_slice<'a>(&self) -> &'a [T] {
