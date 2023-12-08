@@ -3,3 +3,4 @@ Cargo.lock
 
 # Test File
 filevec.bin
+*.memtest

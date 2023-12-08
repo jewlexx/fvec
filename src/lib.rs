@@ -104,22 +104,26 @@ impl<T> Default for FVec<T> {
 mod tests {
     use super::*;
 
+    fn test_path() -> String {
+        uuid::Uuid::new_v4().to_string() + ".memtest"
+    }
+
     #[test]
     fn test_add_data() {
-        let mut vec = unsafe { FVec::<usize>::new() };
+        let mut vec = unsafe { FVec::<usize>::from_path(test_path()) };
         for _ in 0..vec.capacity * 2 {
             unsafe { vec.push(usize::MAX) };
         }
-        let slice = unsafe { vec.as_slice() };
 
-        for i in slice.iter() {
+        for i in vec.iter() {
             assert_eq!(*i, usize::MAX);
         }
     }
 
     #[test]
     fn test_mutate_slice() {
-        let mut vec = unsafe { FVec::<usize>::new() };
+        let path = test_path();
+        let mut vec = unsafe { FVec::<usize>::from_path(&path) };
         for _ in 0..16 {
             unsafe { vec.push(usize::MAX) };
         }
@@ -128,7 +132,7 @@ mod tests {
 
         drop(vec);
 
-        let vec = unsafe { FVec::<usize>::new() };
+        let vec = unsafe { FVec::<usize>::from_path(&path) };
         assert_eq!(vec.get(9), Some(&5));
     }
 
