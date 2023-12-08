@@ -11,11 +11,11 @@ use std::{
 use memmap2::MmapMut;
 
 pub struct FVec<T: Sized> {
-    map: MmapMut,
     data_type: PhantomData<T>,
-    len: usize,
+    map: MmapMut,
     capacity: usize,
     file: File,
+    len: usize,
 }
 
 impl<T: Sized> FVec<T> {
@@ -35,14 +35,23 @@ impl<T: Sized> FVec<T> {
             .open(path)
             .unwrap();
 
-        file.set_len((START_CAPACITY * data_size) as u64).unwrap();
+        let len = {
+            let len = file.metadata().unwrap().len();
+            if len == 0 {
+                START_CAPACITY as u64
+            } else {
+                len
+            }
+        };
+
+        file.set_len(len * (data_size as u64)).unwrap();
 
         Self {
-            map: MmapMut::map_mut(&file).unwrap(),
             data_type: PhantomData,
-            len: 0,
+            map: MmapMut::map_mut(&file).unwrap(),
             capacity: START_CAPACITY,
             file,
+            len: (len / (data_size as u64)) as usize,
         }
     }
 
@@ -106,5 +115,25 @@ mod tests {
         for i in slice.iter() {
             assert_eq!(*i, usize::MAX);
         }
+    }
+
+    #[test]
+    fn test_mutate_slice() {
+        let mut vec = unsafe { FVec::<usize>::new() };
+        for _ in 0..16 {
+            unsafe { vec.push(usize::MAX) };
+        }
+        let slice = unsafe { vec.as_slice_mut() };
+        slice[9] = 5;
+
+        drop(vec);
+
+        let vec = unsafe { FVec::<usize>::new() };
+        assert_eq!(vec.get(9), Some(&5));
+    }
+
+    #[test]
+    fn test_mutate_vector() {
+        unimplemented!()
     }
 }
