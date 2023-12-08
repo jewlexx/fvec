@@ -1,0 +1,5 @@
+Cargo.lock
+/target
+
+# Test File
+filevec.bin
